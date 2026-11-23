@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { consoleReturnWindow, sessionDeepLink } from "./deep-links"
+import { consoleReturnWindow, newSessionDeepLink, sessionDeepLink } from "./deep-links"
 
 describe("session deep links", () => {
   test("reads the session id", () => {
@@ -14,6 +14,32 @@ describe("session deep links", () => {
     expect(sessionDeepLink("opencode://open-project?directory=/tmp")).toBeUndefined()
     expect(sessionDeepLink("https://session/ses_abc")).toBeUndefined()
     expect(sessionDeepLink("not a url")).toBeUndefined()
+  })
+})
+
+describe("new session deep links", () => {
+  test("reads the directory and prompt", () => {
+    expect(newSessionDeepLink("opencode://new-session?directory=/tmp/demo")).toEqual({
+      directory: "/tmp/demo",
+      prompt: undefined,
+    })
+    expect(newSessionDeepLink("opencode://new-session?directory=%2Ftmp%2Fmy%20app&prompt=hello%20world")).toEqual({
+      directory: "/tmp/my app",
+      prompt: "hello world",
+    })
+    expect(newSessionDeepLink("opencode://new-session?directory=/tmp/demo&prompt=")).toEqual({
+      directory: "/tmp/demo",
+      prompt: undefined,
+    })
+  })
+
+  test("rejects unrelated and malformed links", () => {
+    expect(newSessionDeepLink("opencode://new-session")).toBeUndefined()
+    expect(newSessionDeepLink("opencode://new-session?directory=")).toBeUndefined()
+    expect(newSessionDeepLink("opencode://new-session?prompt=hello")).toBeUndefined()
+    expect(newSessionDeepLink("opencode://session/ses_abc123")).toBeUndefined()
+    expect(newSessionDeepLink("https://new-session?directory=/tmp/demo")).toBeUndefined()
+    expect(newSessionDeepLink("not a url")).toBeUndefined()
   })
 })
 
